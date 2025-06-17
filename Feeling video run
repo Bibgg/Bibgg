@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rainbow Video Sharing Platform</title>
+    <style>
+        :root {
+            --red: #ff595e;
+            --orange: #ffca3a;
+            --yellow: #ffca3a;
+            --green: #8ac926;
+            --blue: #1982c4;
+            --purple: #6a4c93;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            background: linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            padding: 10px;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        
+        .rainbow-border {
+            border: 3px solid transparent;
+            border-radius: 8px;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple)) border-box;
+        }
+        
+        .upload-container, .video-display, .video-item {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        
+        .upload-container {
+            border-top: 5px solid var(--red);
+        }
+        
+        .video-display {
+            border-top: 5px solid var(--blue);
+        }
+        
+        .video-item {
+            border-top: 5px solid var(--green);
+            transition: transform 0.3s ease;
+        }
+        
+        .video-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        video {
+            max-width: 100%;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        #uploadButton {
+            background-color: var(--red);
+        }
+        
+        #saveVideo {
+            background-color: var(--green);
+        }
+        
+        #cancelUpload {
+            background-color: var(--orange);
+        }
+        
+        button[onclick*="shareVideo"] {
+            background-color: var(--blue);
+        }
+        
+        button[onclick*="downloadVideo"] {
+            background-color: var(--purple);
+        }
+        
+        button[onclick*="deleteVideo"] {
+            background-color: #ff595e;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .progress-container {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple));
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        
+        #uploadStatus {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            color: var(--blue);
+        }
+        
+        input[type="file"] {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            width: calc(100% - 44px);
+            margin-bottom: 15px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+        
+        h2 {
+            color: var(--purple);
+            border-bottom: 2px solid var(--yellow);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        h3 {
+            color: var(--blue);
+            margin: 15px 0 5px 0;
+            text-align: center;
+        }
+        
+        .rainbow-text {
+            background: linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .section-header::before,
+        .section-header::after {
+            content: "";
+            height: 2px;
+            flex-grow: 1;
+            background: linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple));
+        }
+    </style>
+</head>
+<body>
+    <h1>🌈 Rainbow Video Sharing 🌈</h1>
+    
+    <!-- Upload Section -->
+    <div class="section-header">
+        <h2 class="rainbow-text">Upload a Video</h2>
+    </div>
+    <div class="upload-container rainbow-border">
+        <input type="file" id="videoUpload" accept="video/*">
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="uploadProgress"></div>
+            </div>
+        </div>
+        <div id="uploadStatus"></div>
+        <div class="buttons">
+            <button id="uploadButton">Upload Video</button>
+        </div>
+    </div>
+    
+    <!-- Video Preview Section -->
+    <div class="video-display rainbow-border" id="previewContainer" style="display:none;">
+        <h2 class="rainbow-text">Video Preview</h2>
+        <video id="videoPreview" controls></video>
+        <div class="buttons">
+            <button id="saveVideo">Save to Library</button>
+            <button id="cancelUpload">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Video Library Section -->
+    <div class="section-header">
+        <h2 class="rainbow-text">Video Library</h2>
+    </div>
+    <div class="video-grid" id="videoLibrary">
+        <!-- Example video item (will be dynamically created) -->
+        <div class="video-item rainbow-border">
+            <video src="example.mp4" controls></video>
+            <h3>Example Video</h3>
+            <div class="buttons">
+                <button onclick="shareVideo('example.mp4')">Share</button>
+                <button onclick="downloadVideo('example.mp4')">Download</button>
+                <button onclick="deleteVideo(this)">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables to store data
+        const videoLibrary = [];
+        let currentVideo = null;
+        
+        // DOM elements
+        const fileInput = document.getElementById('videoUpload');
+        const uploadButton = document.getElementById('uploadButton');
+        const previewContainer = document.getElementById('previewContainer');
+        const videoPreview = document.getElementById('videoPreview');
+        const saveButton = document.getElementById('saveVideo');
+        const cancelButton = document.getElementById('cancelUpload');
+        const libraryContainer = document.getElementById('videoLibrary');
+        const progressBar = document.getElementById('uploadProgress');
+        const uploadStatus = document.getElementById('uploadStatus');
+        
+        // Event listeners
+        fileInput.addEventListener('change', previewVideo);
+        uploadButton.addEventListener('click', handleUpload);
+        saveButton.addEventListener('click', saveToLibrary);
+        cancelButton.addEventListener('click', cancelUpload);
+        
+        // Preview selected video
+        function previewVideo(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const videoURL = URL.createObjectURL(file);
+                videoPreview.src = videoURL;
+                previewContainer.style.display = 'block';
+                currentVideo = {
+                    file: file,
+                    url: videoURL,
+                    name: file.name
+                };
+            }
+        }
+        
+        // Handle upload process
+        function handleUpload() {
+            if (!fileInput.files[0]) {
+                alert('Please select a video file first!');
+                return;
+            }
+            
+            // Simulate upload progress
+            uploadStatus.textContent = "Uploading...";
+            uploadStatus.className = "rainbow-text";
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    uploadStatus.textContent = "✨ Upload complete! Preview your video. ✨";
+                    previewContainer.style.display = 'block';
+                }
+            }, 200);
+        }
+        
+        // Save video to library
+        function saveToLibrary() {
+            if (currentVideo) {
+                // Add to our array
+                videoLibrary.push(currentVideo);
+                
+                // Create UI element
+                const videoItem = document.createElement('div');
+                videoItem.className = 'video-item rainbow-border';
+                videoItem.innerHTML = `
+                    <video src="${currentVideo.url}" controls></video>
+                    <h3>${currentVideo.name}</h3>
+                    <div class="buttons">
+                        <button onclick="shareVideo('${currentVideo.url}')">Share</button>
+                        <button onclick="downloadVideo('<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mi>c</mi><mi>u</mi><mi>r</mi><mi>r</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>V</mi><mi>i</mi><mi>d</mi><mi>e</mi><mi>o</mi><mi mathvariant="normal">.</mi><mi>u</mi><mi>r</mi><mi>l</mi></mrow><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><msup><mo separator="true">,</mo><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">{currentVideo.url}&#x27;, &#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0307em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">c</span><span class="mord mathnormal">u</span><span class="mord mathnormal">rre</span><span class="mord mathnormal">n</span><span class="mord mathnormal">t</span><span class="mord mathnormal">Vi</span><span class="mord mathnormal">d</span><span class="mord mathnormal">eo</span><span class="mord">.</span><span class="mord mathnormal">u</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8362em;"><span style="top:-3.1473em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mpunct"><span class="mpunct">,</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>{currentVideo.name}')">Download</button>
+                        <button onclick="deleteVideo(this)">Delete</button>
+                    </div>
+                `;
+                
+                libraryContainer.appendChild(videoItem);
+                
+                // Reset the upload form
+                cancelUpload();
+                uploadStatus.textContent = "🎉 Video saved to your library! 🎉";
+            }
+        }
+        
+        // Cancel upload
+        function cancelUpload() {
+            fileInput.value = '';
+            previewContainer.style.display = 'none';
+            videoPreview.src = '';
+            currentVideo = null;
+            progressBar.style.width = '0%';
+            uploadStatus.textContent = '';
+        }
+        
+        // Share video function
+        function shareVideo(videoUrl) {
+            // Create a shareable link
+            const shareableLink = videoUrl;
+            
+            // In a real application, you would generate a proper shareable link
+            // For this demo, we'll just copy the URL to clipboard
+            navigator.clipboard.writeText(window.location.href + '#' + shareableLink)
+                .then(() => {
+                    alert('🌈 Video link copied to clipboard! Share away! 🌈');
+                })
+                .catch(err => {
+                    alert('Failed to copy link: ' + err);
+                });
+        }
+        
+        // Download video function
+        function downloadVideo(videoUrl, videoName) {
+            const a = document.createElement('a');
+            a.href = videoUrl;
+            a.download = videoName || 'rainbow-video.mp4';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Show a celebratory message
+            const downloadMsg = document.createElement('div');
+            downloadMsg.textContent = '🌈 Download started! 🌈';
+            downloadMsg.style.position = 'fixed';
+            downloadMsg.style.bottom = '20px';
+            downloadMsg.style.left = '50%';
+            downloadMsg.style.transform = 'translateX(-50%)';
+            downloadMsg.style.padding = '10px 20px';
+            downloadMsg.style.backgroundColor = 'white';
+            downloadMsg.style.color = '#333';
+            downloadMsg.style.borderRadius = '30px';
+            downloadMsg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+            downloadMsg.style.zIndex = '1000';
+            
+            document.body.appendChild(downloadMsg);
+            
+            setTimeout(() => {
+                downloadMsg.remove();
+            }, 3000);
+        }
+        
+        // Delete video function
+        function deleteVideo(button) {
+            if (confirm('Are you sure you want to delete this video?')) {
+                const videoItem = button.closest('.video-item');
+                videoItem.style.transition = 'all 0.5s ease';
+                videoItem.style.transform = 'scale(0.8)';
+                videoItem.style.opacity = '0';
+                
+                setTimeout(() => {
+                    videoItem.remove();
+                }, 500);
+                // In a real app, you would also remove it from storage
+            }
+        }
+        
+        // Add rainbow animation to the title
+        document.addEventListener('DOMContentLoaded', function() {
+            const title = document.querySelector('h1');
+            setInterval(() => {
+                const hue = (Date.now() / 30) % 360;
+                title.style.filter = `hue-rotate(${hue}deg)`;
+            }, 100);
+        });
+    </script>
+</body>
+</html>
